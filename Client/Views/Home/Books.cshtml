@@ -1,28 +1,28 @@
 ﻿@{
-    ViewData["Title"] = "Books";
+    Layout = "_Layout";
 }
 
 <style>
     .custom-cart-button {
-        background-color: #9F2B68; /* Postavlja pozadinsku boju */
-        border-color: #9F2B68; /* Postavlja boju okvira */
-        color: white; /* Postavlja boju teksta */
-        transition: box-shadow 0.3s; /* Dodaje tranziciju za senku */
+        background-color: #9F2B68;
+        border-color: #9F2B68;
+        color: white;
+        transition: box-shadow 0.3s;
     }
 
-    .custom-cart-button:hover {
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Dodaje senku oko dugmeta */
+        .custom-cart-button:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             color: white;
-     }
+        }
 </style>
 
-<div class="container mt-5">
+<div class="container mt-4">
     <h2 class="text-center" style="color: #9F2B68;">Books</h2>
     <p class="text-center" style="color: #666;">Explore our collection of books below!</p>
 
-    <div class="row mt-4">
+    <div class="row mt-3 d-flex justify-content-center">
 
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <img src="/assets/books/name-of-the-wind.jpg" class="card-img-top" alt="The Name of the Wind">
                 <div class="card-body">
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <img src="/assets/books/rebecca.jpg" class="card-img-top" alt="Rebecca">
                 <div class="card-body">
@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <img src="/assets/books/1984.jpg" class="card-img-top" alt="1984">
                 <div class="card-body">
@@ -73,7 +73,6 @@
             </div>
         </div>
     </div>
-</div>
 </div>
 
 <script>

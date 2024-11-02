@@ -1,107 +1,98 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = "_Layout";
+}
 
-    <style>
-        balance-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+<style>
+    balance-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
 
-        .row{
-            max-width: 400px;
-            width: 100%;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
+    .row {
+        max-width: 400px;
+        width: 100%;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
 
-        .balance-display {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
+    .balance-display {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
 
-        .balance-input {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 15px;
-        }
+    .balance-input {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 15px;
+    }
 
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-        }
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+    }
 
-        .btn-primary {
+    .btn-primary {
+        background-color: #9F2B68;
+        border-color: #9F2B68;
+        transition: box-shadow 0.3s;
+    }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             background-color: #9F2B68;
             border-color: #9F2B68;
-            transition: box-shadow 0.3s;
         }
 
-            .btn-primary:hover {
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                background-color: #9F2B68;
-                border-color: #9F2B68;
-            }
-            .container{
-                width: 50%;
-            }
-    </style>
+</style>
 
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="row">
+        <h2 class="mb-4" style="color: #9F2B68;">Account Balance</h2>
 
+        <div class="balance-display" id="balanceDisplay">$1000.00</div>
 
-    <div class="container">
-        <div class="row">
-            <h2 class="mb-4" style="color: #9F2B68;">Account Balance</h2>
-
-            <div class="balance-display" id="balanceDisplay">$1000.00</div>
-
-            <div class="input-group mb-3">
-                <input type="number" id="balanceInput" class="form-control balance-input" placeholder="Enter amount">
-            </div>
-
-            <div class="btn-group mb-3">
-                <button class="btn btn-outline-success" onclick="increaseBalance()">Add</button>
-                <button class="btn btn-outline-danger" onclick="decreaseBalance()">Subtract</button>
-            </div>
-
-             <button class="btn btn-primary w-100" onclick="applyBalance()">Apply</button>
+        <div class="input-group mb-3">
+            <input type="number" id="balanceInput" class="form-control balance-input" placeholder="Enter amount">
         </div>
+
+        <div class="btn-group mb-3">
+            <button class="btn btn-outline-success" onclick="increaseBalance()">Add</button>
+            <button class="btn btn-outline-danger" onclick="decreaseBalance()">Subtract</button>
+        </div>
+
+        <button class="btn btn-primary w-100" onclick="applyBalance()">Apply</button>
     </div>
+</div>
 
-    <script>
-        let currentBalance = 1000;
+<script>
+    let currentBalance = 1000;
 
-        function increaseBalance() {
-            const amount = parseFloat(document.getElementById("balanceInput").value);
-            if (!isNaN(amount)) {
-                currentBalance += amount;
-                updateBalanceDisplay();
-            }
+    function increaseBalance() {
+        const amount = parseFloat(document.getElementById("balanceInput").value);
+        if (!isNaN(amount)) {
+            currentBalance += amount;
+            updateBalanceDisplay();
         }
+    }
 
-        function decreaseBalance() {
-            const amount = parseFloat(document.getElementById("balanceInput").value);
-            if (!isNaN(amount)) {
-                currentBalance -= amount;
-                updateBalanceDisplay();
-            }
+    function decreaseBalance() {
+        const amount = parseFloat(document.getElementById("balanceInput").value);
+        if (!isNaN(amount)) {
+            currentBalance -= amount;
+            updateBalanceDisplay();
         }
+    }
 
-        function applyBalance() {
-            alert("Balance updated: $" + currentBalance.toFixed(2));
-        }
+    function applyBalance() {
+        alert("Balance updated: $" + currentBalance.toFixed(2));
+    }
 
-        function updateBalanceDisplay() {
-            document.getElementById("balanceDisplay").innerText = `$${currentBalance.toFixed(2)}`;
-        }
-    </script>
-
-
-
-}
+    function updateBalanceDisplay() {
+        document.getElementById("balanceDisplay").innerText = `$${currentBalance.toFixed(2)}`;
+    }
+</script>

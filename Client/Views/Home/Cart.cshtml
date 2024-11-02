@@ -1,0 +1,80 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<style>
+    .cart-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .cart-items {
+        width: 100%;
+        max-width: 800px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+    .total-sum {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+
+    .btn-buy {
+        margin-top: 20px;
+        background-color: #9F2B68;
+        color: white;
+        border: none;
+    }
+
+        .btn-buy:hover {
+            background-color: #7F1F54;
+            color: white;
+        }
+</style>
+<div class="cart-container">
+    <h2 class="mb-4" style="color: #9F2B68;">Shopping Cart</h2>
+
+    <div class="cart-items">
+        <div class="cart-item">
+            <span>Book Title 1</span>
+            <span>$15.00</span>
+        </div>
+        <div class="cart-item">
+            <span>Book Title 2</span>
+            <span>$25.00</span>
+        </div>
+        <div class="cart-item">
+            <span>Book Title 3</span>
+            <span>$10.00</span>
+        </div>
+    </div>
+
+    <div class="total-sum">
+        Total: $50.00 
+    </div>
+
+    <button class="btn btn-buy" onclick="buyBooks()">Buy</button>
+</div>
+<script>
+    function buyBooks() {
+        alert("Thank you for your purchase!");
+    }
+</script>
