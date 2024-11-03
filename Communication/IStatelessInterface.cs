@@ -1,9 +1,10 @@
 ﻿using Microsoft.ServiceFabric.Services.Remoting;
 
-namespace Communication
+namespace Common
 {
     public interface IStatelessInterface : IService
     {
         Task<string> GetServiceDetails();
+
     }
 }

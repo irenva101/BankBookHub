@@ -1,6 +1,9 @@
-using Communication;
+using Bank;
+using Common;
+using Common.Models;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System.Fabric;
@@ -10,7 +13,7 @@ namespace TransactionCoordinator
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface
+    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface, ITransactionCoordinator
 
     {
         public TransactionCoordinator(StatefulServiceContext context)
@@ -23,6 +26,23 @@ namespace TransactionCoordinator
             var partitionId = this.Context.PartitionId.ToString();
             return serviceName + ":" + partitionId;
 
+        }
+
+        public Task<bool> Operate(List<CartItem> cart)
+        {
+            double sum = 0;
+            foreach (var cartItem in cart)
+            {
+                if (cartItem != null)
+                {
+                    sum = cartItem.Quantity * cartItem.Book.Price;
+                }
+            }
+            var proxy = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"));
+            var bankResult = proxy.HasSufficientFunds(sum);
+
+            //TODO: implementation the TransactionCoordinator and Bookstore communication
+            return bankResult;
         }
 
         /// <summary>

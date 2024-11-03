@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Communication\Common.csproj" />
+    <ProjectReference Include="..\TransactionCoordinator\TransactionCoordinator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,23 +1,41 @@
-using System;
-using System.Collections.Generic;
-using System.Fabric;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Common;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using System.Fabric;
 
 namespace Bank
 {
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class Bank : StatefulService
+    internal sealed class Bank : StatefulService, IStatefulInterface, IBank
     {
-        public Bank(StatefulServiceContext context)
+        private readonly DB _db;
+        public Bank(StatefulServiceContext context, DB db)
             : base(context)
-        { }
+        {
+            _db = db;
+        }
+
+        public Task<string> GetServiceDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasSufficientFunds(double amount)
+        {
+            if (amount > 100)
+            {
+                return Task.FromResult(false);
+            }
+            else
+            {
+                _db.AccountBalance = _db.AccountBalance - amount;
+                return Task.FromResult(true);
+            }
+        }
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -28,7 +46,7 @@ namespace Bank
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[0];
+            return this.CreateServiceRemotingReplicaListeners();
         }
 
         /// <summary>

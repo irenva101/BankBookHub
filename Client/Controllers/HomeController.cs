@@ -1,10 +1,10 @@
 using Client.Models;
 using Common;
 using Common.Models;
-using Communication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using System.Diagnostics;
+using Validator;
 
 namespace Client.Controllers
 {
@@ -45,10 +45,10 @@ namespace Client.Controllers
 
         public IActionResult Buy()
         {
-
-            //Made an proxy for our stateless interface service
-            var statelessProxy = ServiceProxy.Create<IStatelessInterface>(new Uri("fabric:/BankBookHub/Validator"));
-            var serviceName = statelessProxy.GetServiceDetails();
+            //var statelessProxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
+            //var serviceName = statelessProxy.GetServiceDetails();
+            var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
+            var result = proxy.ValidateRequest(_cart);
             return View("Index");
         }
         [HttpPost]

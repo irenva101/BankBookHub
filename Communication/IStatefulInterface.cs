@@ -1,6 +1,6 @@
 ﻿using Microsoft.ServiceFabric.Services.Remoting;
 
-namespace Communication
+namespace Common
 {
     public interface IStatefulInterface : IService
     {

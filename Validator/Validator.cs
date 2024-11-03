@@ -1,5 +1,7 @@
-using Communication;
+using Common;
+using Common.Models;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System.Fabric;
@@ -9,15 +11,31 @@ namespace Validator
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class Validator : StatelessService, IStatelessInterface
+    internal sealed class Validator : StatelessService, IStatelessInterface, IValidator
     {
-        public Validator(StatelessServiceContext context)
+        public Validator(StatelessServiceContext context, IValidator validator)
             : base(context)
-        { }
-
-        public async Task<string> GetServiceDetails()
         {
-            return this.Context.ServiceName.ToString();
+
+        }
+
+        public Task<string> GetServiceDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> RequestTransactionCoordinator(List<CartItem> cart)
+        {
+            var proxy = ServiceProxy.Create<ITransactionCoordinator>(new Uri("fabric:/BankBookHub/TransactionCooperator"));
+            var result = proxy.Operate(cart);
+            return result;
+        }
+
+        public Task<bool> ValidateRequest(List<CartItem> cart)
+        {
+            var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/TransactionCooperator"));
+            var result = proxy.RequestTransactionCoordinator(cart);
+            return result;
         }
 
         /// <summary>
