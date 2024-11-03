@@ -5,15 +5,17 @@ VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "BankBookHub", "BankBookHub\BankBookHub.sfproj", "{078A9854-097C-4346-82E7-224BE9393CAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionCoordinator", "TransactionCoordinator\TransactionCoordinator.csproj", "{403F1A5E-B8A7-47D2-8722-D3621A9226A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionCoordinator", "TransactionCoordinator\TransactionCoordinator.csproj", "{403F1A5E-B8A7-47D2-8722-D3621A9226A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookstore", "Bookstore\Bookstore.csproj", "{3FE2D625-B267-49F9-8A88-D33236C3EB04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookstore", "Bookstore\Bookstore.csproj", "{3FE2D625-B267-49F9-8A88-D33236C3EB04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank", "Bank\Bank.csproj", "{2BE63A63-5197-4C9D-9321-F4024EC9EC4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank", "Bank\Bank.csproj", "{2BE63A63-5197-4C9D-9321-F4024EC9EC4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validator", "Validator\Validator.csproj", "{5839F360-C4D7-4FEF-9EC0-3D75649695F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validator", "Validator\Validator.csproj", "{5839F360-C4D7-4FEF-9EC0-3D75649695F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{B1657E6E-C878-4CFD-B361-2022731EEDA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{B1657E6E-C878-4CFD-B361-2022731EEDA1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Communication\Common.csproj", "{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,14 @@ Global
 		{B1657E6E-C878-4CFD-B361-2022731EEDA1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1657E6E-C878-4CFD-B361-2022731EEDA1}.Release|x64.ActiveCfg = Release|Any CPU
 		{B1657E6E-C878-4CFD-B361-2022731EEDA1}.Release|x64.Build.0 = Release|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Debug|x64.Build.0 = Debug|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Release|x64.ActiveCfg = Release|Any CPU
+		{DD9A5A4A-013C-4E5F-B3B9-465037DD0CE6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

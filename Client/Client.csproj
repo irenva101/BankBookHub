@@ -13,4 +13,8 @@
     <None Remove="assets\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Communication\Common.csproj" />
+  </ItemGroup>
+
 </Project>

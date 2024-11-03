@@ -16,75 +16,59 @@
         }
 </style>
 
+@model IEnumerable<Common.Models.Book>
+
 <div class="container mt-4">
     <h2 class="text-center" style="color: #9F2B68;">Books</h2>
     <p class="text-center" style="color: #666;">Explore our collection of books below!</p>
 
     <div class="row mt-3 d-flex justify-content-center">
-
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <img src="/assets/books/name-of-the-wind.jpg" class="card-img-top" alt="The Name of the Wind">
-                <div class="card-body">
-                    <h5 class="card-title">The Name of the Wind</h5>
-                    <p class="card-text">The Name of the Wind follows the journey of Kvothe, a gifted young man who grows up to become a legendary figure.</p>
-                    <p class="price" style="font-weight: bold;">Price: $19.99</p>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-secondary btn-sm me-2" onclick="decreaseQuantity('quantity1')">-</button>
-                        <input type="number" id="quantity1" value="1" min="1" class="form-control w-25 me-2" />
-                        <button class="btn btn-secondary btn-sm" onclick="increaseQuantity('quantity1')">+</button>
+        @foreach (var book in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <img src="/assets/books/@(book.Title.Replace(" ", "-").ToLower()).jpg" class="card-img-top" alt="@book.Title">
+                    <div class="card-body">
+                        <h5 class="card-title">@book.Title</h5>
+                        <p class="card-text">@book.Description</p>
+                        <p class="price" style="font-weight: bold;">Price: $@book.Price</p>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-secondary btn-sm me-2" onclick="updateQuantity('@book.Id', -1)">-</button>
+                            <input type="number" id="quantity-@book.Id" value="1" min="1" class="form-control w-25 me-2" />
+                            <button class="btn btn-secondary btn-sm" onclick="updateQuantity('@book.Id', 1)">+</button>
+                        </div>
+                        <button class="btn custom-cart-button mt-2" onclick="addToCart('@book.Id', 'quantity-@book.Id')">Add to Cart</button>
                     </div>
-                    <button class="btn custom-cart-button mt-2">Add to Cart</button>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <img src="/assets/books/rebecca.jpg" class="card-img-top" alt="Rebecca">
-                <div class="card-body">
-                    <h5 class="card-title">Rebecca</h5>
-                    <p class="card-text">Rebecca tells the story of a young, unnamed protagonist who marries the wealthy widower Maxim de Winter and moves to his grand estate, Manderley.</p>
-                    <p class="price" style="font-weight: bold;">Price: $14.99</p>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-secondary btn-sm me-2" onclick="decreaseQuantity('quantity2')">-</button>
-                        <input type="number" id="quantity2" value="1" min="1" class="form-control w-25 me-2" />
-                        <button class="btn btn-secondary btn-sm" onclick="increaseQuantity('quantity2')">+</button>
-                    </div>
-                    <button class="btn custom-cart-button mt-2">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <img src="/assets/books/1984.jpg" class="card-img-top" alt="1984">
-                <div class="card-body">
-                    <h5 class="card-title">1984</h5>
-                    <p class="card-text">1984 is a dystopian novel set in a totalitarian regime governed by the Party, led by the figurehead Big Brother.</p>
-                    <p class="price" style="font-weight: bold;">Price: $17.99</p>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-secondary btn-sm me-2" onclick="decreaseQuantity('quantity3')">-</button>
-                        <input type="number" id="quantity3" value="1" min="1" class="form-control w-25 me-2" />
-                        <button class="btn btn-secondary btn-sm" onclick="increaseQuantity('quantity3')">+</button>
-                    </div>
-                    <button class="btn custom-cart-button mt-2">Add to Cart</button>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
 <script>
-    function increaseQuantity(id) {
-        var input = document.getElementById(id);
-        input.value = parseInt(input.value) + 1;
+    function updateQuantity(bookId, change) {
+        var input = document.getElementById(`quantity-${bookId}`);
+        var currentQuantity = parseInt(input.value) || 1; // Default to 1 if value is empty
+
+        // Update quantity
+        var newQuantity = currentQuantity + change;
+
+        // Ensure quantity does not go below 1
+        if (newQuantity < 1) {
+            newQuantity = 1;
+        }
+
+        input.value = newQuantity;
     }
 
-    function decreaseQuantity(id) {
-        var input = document.getElementById(id);
-        if (input.value > 1) {
-            input.value = parseInt(input.value) - 1;
-        }
+    function addToCart(bookId, quantityId) { 
+        var quantity = document.getElementById(quantityId).value; 
+        $.post('/Home/AddToCart', { bookId: bookId, quantity: quantity }, 
+        function (response) { 
+            if (response.success) { 
+                alert('Book added to cart!'); 
+            } 
+        }); 
     }
+
 </script>

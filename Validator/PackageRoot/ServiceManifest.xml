@@ -31,4 +31,4 @@
       <Endpoint Name="ServiceEndpoint" />
     </Endpoints>
   </Resources>
-</ServiceManifest>
+</ServiceManifest> 
