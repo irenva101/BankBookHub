@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Common.Models
+@{
     Layout = "_Layout";
 }
 
@@ -16,7 +17,7 @@
         }
 </style>
 
-@model IEnumerable<Common.Models.Book>
+@model Dictionary<int, Book>
 
 <div class="container mt-4">
     <h2 class="text-center" style="color: #9F2B68;">Books</h2>
@@ -27,17 +28,17 @@
         {
             <div class="col-md-3 mb-4">
                 <div class="card">
-                    <img src="/assets/books/@(book.Title.Replace(" ", "-").ToLower()).jpg" class="card-img-top" alt="@book.Title">
+                    <img src="/assets/books/@(book.Value.Title.Replace(" ", "-").ToLower()).jpg" class="card-img-top" alt="@book.Value.Title">
                     <div class="card-body">
-                        <h5 class="card-title">@book.Title</h5>
-                        <p class="card-text">@book.Description</p>
-                        <p class="price" style="font-weight: bold;">Price: $@book.Price</p>
+                        <h5 class="card-title">@book.Value.Title</h5>
+                        <p class="card-text">@book.Value.Description</p>
+                        <p class="price" style="font-weight: bold;">Price: $@book.Value.Price</p>
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-secondary btn-sm me-2" onclick="updateQuantity('@book.Id', -1)">-</button>
-                            <input type="number" id="quantity-@book.Id" value="1" min="1" class="form-control w-25 me-2" />
-                            <button class="btn btn-secondary btn-sm" onclick="updateQuantity('@book.Id', 1)">+</button>
+                            <button class="btn btn-secondary btn-sm me-2" onclick="updateQuantity('@book.Value.Id', -1)">-</button>
+                            <input type="number" id="quantity-@book.Value.Id" value="1" min="1" class="form-control w-25 me-2" />
+                            <button class="btn btn-secondary btn-sm" onclick="updateQuantity('@book.Value.Id', 1)">+</button>
                         </div>
-                        <button class="btn custom-cart-button mt-2" onclick="addToCart('@book.Id', 'quantity-@book.Id')">Add to Cart</button>
+                        <button class="btn custom-cart-button mt-2" onclick="addToCart('@book.Value.Id', 'quantity-@book.Value.Id')">Add to Cart</button>
                     </div>
                 </div>
             </div>
@@ -66,7 +67,7 @@
         $.post('/Home/AddToCart', { bookId: bookId, quantity: quantity }, 
         function (response) { 
             if (response.success) { 
-                alert('Book added to cart!'); 
+                
             } 
         }); 
     }

@@ -11,18 +11,21 @@ namespace Client.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly DB _db;
         private static List<CartItem> _cart = new List<CartItem>();
 
-        public HomeController(ILogger<HomeController> logger, DB db)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            _db = db;
         }
 
         public IActionResult Index()
         {
-            return View();
+            var model = new HomeViewModel
+            {
+                AccountBalance = DB.AccountBalance,
+                BookCount = DB.Books.Count
+            };
+            return View(model);
         }
 
         public IActionResult Privacy()
@@ -31,8 +34,7 @@ namespace Client.Controllers
         }
         public IActionResult Books()
         {
-            IEnumerable<Common.Models.Book> books = _db.GetAllBooks();
-            return View(books);
+            return View(DB.Books);
         }
         public IActionResult Balance()
         {
@@ -43,18 +45,32 @@ namespace Client.Controllers
             return View(_cart);
         }
 
-        public IActionResult Buy()
+        public async Task<IActionResult> Buy()
         {
-            //var statelessProxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
-            //var serviceName = statelessProxy.GetServiceDetails();
+            if (_cart == null || !_cart.Any())
+            {
+                TempData["Message"] = "Cart is empty or not initialized.";
+                return View("Index");
+            }
+
             var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
-            var result = proxy.ValidateRequest(_cart);
-            return View("Index");
+            var result = await proxy.ValidateRequest(_cart);
+
+            if (result)
+            {
+                TempData["Message"] = "Transaction successfully completed!";
+            }
+            else
+            {
+                TempData["Message"] = "Transaction failed due to insufficient funds or nonexistent books.";
+            }
+
+            return RedirectToAction("Index");
         }
         [HttpPost]
         public IActionResult AddToCart(int bookId, int quantity)
         {
-            var book = _db.GetBookById(bookId);
+            var book = DB.GetBookById(bookId);
             var cartItem = _cart.FirstOrDefault(c => c.Book.Id == bookId);
             if (cartItem == null)
             {

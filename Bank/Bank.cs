@@ -12,11 +12,10 @@ namespace Bank
     /// </summary>
     internal sealed class Bank : StatefulService, IStatefulInterface, IBank
     {
-        private readonly DB _db;
-        public Bank(StatefulServiceContext context, DB db)
+        private double previousState = 0;
+        public Bank(StatefulServiceContext context)
             : base(context)
         {
-            _db = db;
         }
 
         public Task<string> GetServiceDetails()
@@ -32,10 +31,33 @@ namespace Bank
             }
             else
             {
-                _db.AccountBalance = _db.AccountBalance - amount;
                 return Task.FromResult(true);
             }
         }
+
+        public Task RemoveFunds(double amount)
+        {
+            previousState = DB.AccountBalance;
+
+            // Pozivanje metode koja menja stanje
+            bool result = DB.RemoveFunds(amount);
+
+            // Ako operacija nije uspešna, možemo da vratimo stanje na prethodno
+            if (!result)
+            {
+                // Opcionalno vra?anje prethodnog stanja
+                DB.AccountBalance = previousState;
+            }
+
+            return Task.FromResult(result);
+        }
+
+        public Task<bool> RollbackTransaction()
+        {
+            DB.AccountBalance = previousState;
+            return Task.FromResult(true);
+        }
+
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -82,5 +104,7 @@ namespace Bank
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
+
+
     }
 }

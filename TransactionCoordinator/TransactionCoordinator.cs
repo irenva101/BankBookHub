@@ -1,7 +1,7 @@
-using Bank;
 using Common;
 using Common.Models;
 using Microsoft.ServiceFabric.Data.Collections;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -28,21 +28,27 @@ namespace TransactionCoordinator
 
         }
 
-        public Task<bool> Operate(List<CartItem> cart)
+        public async Task<bool> Operate(List<CartItem> cart)
         {
-            double sum = 0;
-            foreach (var cartItem in cart)
-            {
-                if (cartItem != null)
-                {
-                    sum = cartItem.Quantity * cartItem.Book.Price;
-                }
-            }
-            var proxy = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"));
-            var bankResult = proxy.HasSufficientFunds(sum);
+            double sum = cart.Sum(cartItem => cartItem.Quantity * cartItem.Book.Price);
 
-            //TODO: implementation the TransactionCoordinator and Bookstore communication
-            return bankResult;
+            var proxy1 = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"), new ServicePartitionKey(0));
+            var bankResult = await proxy1.HasSufficientFunds(sum);
+
+            var proxy2 = ServiceProxy.Create<IBookstore>(new Uri("fabric:/BankBookHub/Bookstore"), new ServicePartitionKey(0));
+            var bookstoreResult = await proxy2.HasSelectedBooks(cart);
+
+            if (bankResult && bookstoreResult)
+            {
+                await proxy1.RemoveFunds(sum);
+                await proxy2.RemoveBooksFromStorage(cart);
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

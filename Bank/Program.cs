@@ -1,8 +1,6 @@
-using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using Common;
 using Microsoft.ServiceFabric.Services.Runtime;
+using System.Diagnostics;
 
 namespace Bank
 {
@@ -19,9 +17,11 @@ namespace Bank
                 // Registering a service maps a service type name to a .NET type.
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
+                var dbInstance = new DB();
 
                 ServiceRuntime.RegisterServiceAsync("BankType",
                     context => new Bank(context)).GetAwaiter().GetResult();
+
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(Bank).Name);
 

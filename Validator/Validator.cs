@@ -1,5 +1,6 @@
 using Common;
 using Common.Models;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -13,7 +14,7 @@ namespace Validator
     /// </summary>
     internal sealed class Validator : StatelessService, IStatelessInterface, IValidator
     {
-        public Validator(StatelessServiceContext context, IValidator validator)
+        public Validator(StatelessServiceContext context)
             : base(context)
         {
 
@@ -24,18 +25,17 @@ namespace Validator
             throw new NotImplementedException();
         }
 
-        public Task<bool> RequestTransactionCoordinator(List<CartItem> cart)
+        public async Task<bool> ValidateRequest(List<CartItem> cart)
         {
-            var proxy = ServiceProxy.Create<ITransactionCoordinator>(new Uri("fabric:/BankBookHub/TransactionCooperator"));
-            var result = proxy.Operate(cart);
-            return result;
-        }
+            var proxy = ServiceProxy.Create<ITransactionCoordinator>(new Uri("fabric:/BankBookHub/TransactionCoordinator"),
+                new ServicePartitionKey(0));
+            var result = await proxy.Operate(cart);
+            if (result)
+            {
+                return true;
+            }
 
-        public Task<bool> ValidateRequest(List<CartItem> cart)
-        {
-            var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/TransactionCooperator"));
-            var result = proxy.RequestTransactionCoordinator(cart);
-            return result;
+            return false;
         }
 
         /// <summary>

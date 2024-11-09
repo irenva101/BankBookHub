@@ -1,23 +1,73 @@
-using System;
-using System.Collections.Generic;
-using System.Fabric;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Common;
+using Common.Models;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using System.Fabric;
 
 namespace Bookstore
 {
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class Bookstore : StatefulService
+    internal sealed class Bookstore : StatefulService, IStatefulInterface, IBookstore
     {
+        private IEnumerable<Book> previousState = new List<Book>();
         public Bookstore(StatefulServiceContext context)
             : base(context)
         { }
+
+        public Task<bool> HasSelectedBooks(List<CartItem> cart)
+        {
+            var previousState = DB.Books.ToDictionary(entry => entry.Key, entry => new Book
+            {
+                Id = entry.Value.Id,
+                Title = entry.Value.Title,
+                Author = entry.Value.Author,
+                Description = entry.Value.Description,
+                Price = entry.Value.Price,
+                Quantity = entry.Value.Quantity
+            });
+
+            foreach (var item in cart)
+            {
+                if (DB.Books.TryGetValue(item.Book.Id, out Book book))
+                {
+                    if (book.Quantity < item.Quantity)
+                    {
+                        return Task.FromResult(false);
+                    }
+                }
+            }
+            return Task.FromResult(true);
+        }
+
+        public Task RemoveBooksFromStorage(List<CartItem> cart)
+        {
+            previousState = DB.GetAllBooks();
+
+
+            foreach (var cartItem in cart)
+            {
+                if (DB.Books.TryGetValue(cartItem.Book.Id, out Book book))
+                {
+                    book.Quantity -= cartItem.Quantity;
+                }
+            }
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> RollbackTransaction()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetServiceDetails()
+        {
+            throw new NotImplementedException();
+        }
+
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -28,7 +78,7 @@ namespace Bookstore
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[0];
+            return this.CreateServiceRemotingReplicaListeners();
         }
 
         /// <summary>
@@ -64,5 +114,7 @@ namespace Bookstore
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
+
+
     }
 }
