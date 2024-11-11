@@ -13,54 +13,48 @@ namespace Bookstore
     /// </summary>
     internal sealed class Bookstore : StatefulService, IStatefulInterface, IBookstore
     {
-        private IEnumerable<Book> previousState = new List<Book>();
         public Bookstore(StatefulServiceContext context)
             : base(context)
         { }
 
-        public Task<bool> HasSelectedBooks(List<CartItem> cart)
+        public async Task<bool> ModifyQuantity(int bookId, int newQuantity)
         {
-            var previousState = DB.Books.ToDictionary(entry => entry.Key, entry => new Book
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                Id = entry.Value.Id,
-                Title = entry.Value.Title,
-                Author = entry.Value.Author,
-                Description = entry.Value.Description,
-                Price = entry.Value.Price,
-                Quantity = entry.Value.Quantity
-            });
-
-            foreach (var item in cart)
-            {
-                if (DB.Books.TryGetValue(item.Book.Id, out Book book))
+                if (await books.ContainsKeyAsync(tx, bookId))
                 {
-                    if (book.Quantity < item.Quantity)
-                    {
-                        return Task.FromResult(false);
-                    }
+                    await books.AddOrUpdateAsync(tx, bookId, default(Book), (key, value) =>
+                    { value.Quantity = newQuantity; return value; });
+                    await tx.CommitAsync();
+
+                    return true;
                 }
+                return false;
             }
-            return Task.FromResult(true);
+        }
+        public async Task RollbackBooksInventory(List<CartItem> cart)
+        {
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                foreach (var item in cart)
+                {
+                    await books.AddOrUpdateAsync(tx, item.Book.Id, default(Book), (key, value) => { value.Quantity += item.Quantity; return value; });
+                }
+                await tx.CommitAsync();
+            }
         }
 
-        public Task RemoveBooksFromStorage(List<CartItem> cart)
+
+        public async Task<Book> GetBookById(int bookId)
         {
-            previousState = DB.GetAllBooks();
-
-
-            foreach (var cartItem in cart)
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                if (DB.Books.TryGetValue(cartItem.Book.Id, out Book book))
-                {
-                    book.Quantity -= cartItem.Quantity;
-                }
+                var result = await books.TryGetValueAsync(tx, bookId);
+                return result.HasValue ? result.Value : null;
             }
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> RollbackTransaction()
-        {
-            throw new NotImplementedException();
         }
 
         public Task<string> GetServiceDetails()
@@ -68,6 +62,47 @@ namespace Bookstore
             throw new NotImplementedException();
         }
 
+        public async Task<bool> HasSelectedBooks(List<CartItem> cart)
+        {
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                foreach (var item in cart)
+                {
+                    var result = await books.TryGetValueAsync(tx, item.Book.Id);
+                    if (!result.HasValue || result.Value.Quantity < item.Quantity)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        public async Task<bool> RemoveBooksFromStorage(List<CartItem> cart)
+        {
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                foreach (var item in cart)
+                {
+                    var result = await books.TryGetValueAsync(tx, item.Book.Id);
+                    if (result.HasValue && result.Value.Quantity >= item.Quantity)
+                    {
+                        await books.AddOrUpdateAsync(tx, item.Book.Id, default(Book), (key, value) =>
+                        {
+                            value.Quantity -= item.Quantity;
+                            return value;
+                        });
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                await tx.CommitAsync();
+                return true;
+            }
+        }
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -91,30 +126,14 @@ namespace Bookstore
             // TODO: Replace the following sample code with your own logic 
             //       or remove this RunAsync override if it's not needed in your service.
 
-            var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
-
-            while (true)
+            var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    var result = await myDictionary.TryGetValueAsync(tx, "Counter");
-
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
-                        result.HasValue ? result.Value.ToString() : "Value does not exist.");
-
-                    await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
-
-                    // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-                    // discarded, and nothing is saved to the secondary replicas.
-                    await tx.CommitAsync();
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                await books.AddOrUpdateAsync(tx, 1, new Book { Id = 1, Title = "The Name of the Wind", Price = 19.99, Quantity = 3, Description = "The Name of the Wind follows the journey of Kvothe, a gifted young man who grows up to become a legendary figure." }, (key, value) => value);
+                await books.AddOrUpdateAsync(tx, 2, new Book { Id = 2, Title = "Rebecca", Quantity = 6, Price = 24.99, Description = "Rebecca tells the story of a young, unnamed protagonist who marries the wealthy widower Maxim de Winter and moves to his grand estate, Manderley." }, (key, value) => value);
+                await books.AddOrUpdateAsync(tx, 3, new Book { Id = 3, Title = "1984", Quantity = 5, Price = 10.50, Description = "1984 is a dystopian novel set in a totalitarian regime governed by the Party, led by the figurehead Big Brother.", }, (key, value) => value);
+                await tx.CommitAsync();
             }
         }
-
-
     }
 }

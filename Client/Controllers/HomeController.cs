@@ -12,20 +12,19 @@ namespace Client.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private static List<CartItem> _cart = new List<CartItem>();
+        private readonly DB _db;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, DB db)
         {
             _logger = logger;
+            _db = db;
         }
 
         public IActionResult Index()
         {
-            var model = new HomeViewModel
-            {
-                AccountBalance = DB.AccountBalance,
-                BookCount = DB.Books.Count
-            };
-            return View(model);
+            ViewBag.AccountBalance = _db.AccountBalance;
+            ViewBag.BookCount = _db.Books.Count;
+            return View();
         }
 
         public IActionResult Privacy()
@@ -34,7 +33,7 @@ namespace Client.Controllers
         }
         public IActionResult Books()
         {
-            return View(DB.Books);
+            return View(DB.GetDB().Books);
         }
         public IActionResult Balance()
         {
@@ -50,7 +49,7 @@ namespace Client.Controllers
             if (_cart == null || !_cart.Any())
             {
                 TempData["Message"] = "Cart is empty or not initialized.";
-                return View("Index");
+                return RedirectToAction("Index");
             }
 
             var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
@@ -70,7 +69,7 @@ namespace Client.Controllers
         [HttpPost]
         public IActionResult AddToCart(int bookId, int quantity)
         {
-            var book = DB.GetBookById(bookId);
+            var book = DB.GetDB().GetBookById(bookId);
             var cartItem = _cart.FirstOrDefault(c => c.Book.Id == bookId);
             if (cartItem == null)
             {

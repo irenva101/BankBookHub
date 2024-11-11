@@ -2,6 +2,8 @@
 
 @{
     var message = TempData["Message"] as string;
+    var accountBalance = ViewBag.AccountBalance;
+    var bookCount = ViewBag.BookCount;
 }
 
 
@@ -29,8 +31,8 @@
         <h1 class="title">Welcome to Irena's Bookstore!</h1>
         <p class="subtitle">Here, you can browse books, view your cart, and check your balance.</p>
         <div class="mt-6"> 
-            <h3 class="title">Current Account Balance:</h3> <p class="subtitle"> $@Model.AccountBalance</p>
-            <h3 class="title">Total Number of Books:</h3> <p class="subtitle"> @Model.BookCount</p>
+            <h3 class="title">Current Account Balance:</h3> <p class="subtitle"> @accountBalance</p>
+            <h3 class="title">Total Number of Books:</h3> <p class="subtitle"> @bookCount</p>
         </div> 
         @if (!string.IsNullOrEmpty(message))
         {

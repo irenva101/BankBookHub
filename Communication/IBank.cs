@@ -4,8 +4,8 @@ namespace Common
 {
     public interface IBank : IService
     {
+        Task<bool> RemoveFunds(double amount);
         Task<bool> HasSufficientFunds(double amount);
-        Task RemoveFunds(double amount);
-        Task<bool> RollbackTransaction();
+        Task AddFunds(double amount);
     }
 }

@@ -1,8 +1,10 @@
+using Common;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<Common.DB>();
+builder.Services.AddSingleton<DB>(provider => DB.GetDB());
 
 var app = builder.Build();
 

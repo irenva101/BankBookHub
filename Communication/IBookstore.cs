@@ -5,8 +5,11 @@ namespace Common
 {
     public interface IBookstore : IService
     {
+        Task<Book> GetBookById(int bookId);
+        Task<bool> ModifyQuantity(int bookId, int newQuantity);
         Task<bool> HasSelectedBooks(List<CartItem> cart);
-        Task RemoveBooksFromStorage(List<CartItem> cart);
-        Task<bool> RollbackTransaction();
+        Task<bool> RemoveBooksFromStorage(List<CartItem> cart);
+
+        Task RollbackBooksInventory(List<CartItem> cart);
     }
 }

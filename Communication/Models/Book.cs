@@ -1,26 +1,21 @@
-﻿namespace Common.Models
+﻿using System.Runtime.Serialization;
+
+namespace Common.Models
 {
+    [DataContract]
     public class Book
     {
+        [DataMember]
         public int Id { get; set; }
-        public string? Title { get; set; }
-        public string? Author { get; set; }
+        [DataMember]
+        public string Title { get; set; }
+        [DataMember]
+        public string Author { get; set; }
+        [DataMember]
         public double Price { get; set; }
+        [DataMember]
         public int Quantity { get; set; }
+        [DataMember]
         public string? Description { get; set; }
-
-        public Book(int id, string? title, string? author, double price, int quantity, string? description = null)
-        {
-            Id = id;
-            Title = title;
-            Author = author;
-            Price = price;
-            Quantity = quantity;
-            Description = description;
-        }
-        public Book()
-        {
-
-        }
     }
 }

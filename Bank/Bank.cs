@@ -12,7 +12,6 @@ namespace Bank
     /// </summary>
     internal sealed class Bank : StatefulService, IStatefulInterface, IBank
     {
-        private double previousState = 0;
         public Bank(StatefulServiceContext context)
             : base(context)
         {
@@ -23,41 +22,42 @@ namespace Bank
             throw new NotImplementedException();
         }
 
-        public Task<bool> HasSufficientFunds(double amount)
+        public async Task<bool> RemoveFunds(double amount)
         {
-            if (amount > 100)
+            var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                return Task.FromResult(false);
-            }
-            else
-            {
-                return Task.FromResult(true);
+                var result = await balances.TryGetValueAsync(tx, "accountBalance");
+                if (result.HasValue && result.Value >= amount)
+                {
+                    await balances.AddOrUpdateAsync(tx, "accountBalance", 0, (key, value) => value - amount);
+                    await tx.CommitAsync();
+                    return true;
+                }
+                return false;
             }
         }
 
-        public Task RemoveFunds(double amount)
+        public async Task AddFunds(double amount)
         {
-            previousState = DB.AccountBalance;
-
-            // Pozivanje metode koja menja stanje
-            bool result = DB.RemoveFunds(amount);
-
-            // Ako operacija nije uspešna, možemo da vratimo stanje na prethodno
-            if (!result)
+            var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                // Opcionalno vra?anje prethodnog stanja
-                DB.AccountBalance = previousState;
+                await balances.AddOrUpdateAsync(tx, "accountBalance", 0.0, (key, value) => value + amount);
+                await tx.CommitAsync();
             }
-
-            return Task.FromResult(result);
         }
 
-        public Task<bool> RollbackTransaction()
+        public async Task<bool> HasSufficientFunds(double amount)
         {
-            DB.AccountBalance = previousState;
-            return Task.FromResult(true);
-        }
+            var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances");
 
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                var result = await balances.TryGetValueAsync(tx, "accountBalance");
+                return result.HasValue && result.Value >= amount;
+            }
+        }
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
@@ -80,31 +80,12 @@ namespace Bank
         {
             // TODO: Replace the following sample code with your own logic 
             //       or remove this RunAsync override if it's not needed in your service.
-
-            var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
-
-            while (true)
+            var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances");
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    var result = await myDictionary.TryGetValueAsync(tx, "Counter");
-
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
-                        result.HasValue ? result.Value.ToString() : "Value does not exist.");
-
-                    await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
-
-                    // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-                    // discarded, and nothing is saved to the secondary replicas.
-                    await tx.CommitAsync();
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                await balances.AddOrUpdateAsync(tx, "accountBalance", 100.0, (key, value) => value);
+                await tx.CommitAsync();
             }
         }
-
-
     }
 }

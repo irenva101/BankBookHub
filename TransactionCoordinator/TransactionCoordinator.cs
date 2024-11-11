@@ -13,7 +13,7 @@ namespace TransactionCoordinator
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface, ITransactionCoordinator
+    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface
 
     {
         public TransactionCoordinator(StatefulServiceContext context)
@@ -22,33 +22,48 @@ namespace TransactionCoordinator
 
         public async Task<string> GetServiceDetails()
         {
-            var serviceName = this.Context.ServiceName.ToString();
-            var partitionId = this.Context.PartitionId.ToString();
-            return serviceName + ":" + partitionId;
-
+            throw new NotImplementedException();
         }
 
         public async Task<bool> Operate(List<CartItem> cart)
         {
             double sum = cart.Sum(cartItem => cartItem.Quantity * cartItem.Book.Price);
-
-            var proxy1 = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"), new ServicePartitionKey(0));
-            var bankResult = await proxy1.HasSufficientFunds(sum);
-
-            var proxy2 = ServiceProxy.Create<IBookstore>(new Uri("fabric:/BankBookHub/Bookstore"), new ServicePartitionKey(0));
-            var bookstoreResult = await proxy2.HasSelectedBooks(cart);
-
-            if (bankResult && bookstoreResult)
+            var proxyBank = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"), new ServicePartitionKey(0));
+            var proxyBookstore = ServiceProxy.Create<IBookstore>(new Uri("fabric:/BankBookHub/Bookstore"), new ServicePartitionKey(0));
+            using (var transaction = this.StateManager.CreateTransaction())
             {
-                await proxy1.RemoveFunds(sum);
-                await proxy2.RemoveBooksFromStorage(cart);
-            }
-            else
-            {
-                return false;
-            }
+                try
+                {
+                    if (!await proxyBank.HasSufficientFunds(sum))
+                    {
+                        return false;
+                    }
+                    if (!await proxyBookstore.HasSelectedBooks(cart))
+                    {
+                        return false;
+                    }
 
-            return true;
+                    if (!await proxyBank.RemoveFunds(sum))
+                    {
+                        throw new Exception("Not enough funds.");
+                    }
+
+                    if (!await proxyBookstore.RemoveBooksFromStorage(cart))
+                    {
+                        throw new Exception("Problem with the bookstore update.");
+                    }
+
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await proxyBank.AddFunds(sum);
+                    await proxyBookstore.RollbackBooksInventory(cart);
+
+                    return false;
+                }
+            }
         }
 
         /// <summary>

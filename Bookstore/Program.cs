@@ -1,8 +1,6 @@
-using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using Common;
 using Microsoft.ServiceFabric.Services.Runtime;
+using System.Diagnostics;
 
 namespace Bookstore
 {
@@ -19,6 +17,8 @@ namespace Bookstore
                 // Registering a service maps a service type name to a .NET type.
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
+
+                var dbInstance = DB.GetDB();
 
                 ServiceRuntime.RegisterServiceAsync("BookstoreType",
                     context => new Bookstore(context)).GetAwaiter().GetResult();
