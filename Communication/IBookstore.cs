@@ -9,7 +9,7 @@ namespace Common
         Task<bool> ModifyQuantity(int bookId, int newQuantity);
         Task<bool> HasSelectedBooks(List<CartItem> cart);
         Task<bool> RemoveBooksFromStorage(List<CartItem> cart);
-
-        Task RollbackBooksInventory(List<CartItem> cart);
+        Task<Dictionary<int, Book>> GetBooks();
+        Task RollbackBooksInventory(Dictionary<int, Book> books);
     }
 }

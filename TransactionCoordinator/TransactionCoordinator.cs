@@ -13,7 +13,7 @@ namespace TransactionCoordinator
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface
+    internal sealed class TransactionCoordinator : StatefulService, IStatefulInterface, ITransactionCoordinator
 
     {
         public TransactionCoordinator(StatefulServiceContext context)
@@ -30,41 +30,53 @@ namespace TransactionCoordinator
             double sum = cart.Sum(cartItem => cartItem.Quantity * cartItem.Book.Price);
             var proxyBank = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"), new ServicePartitionKey(0));
             var proxyBookstore = ServiceProxy.Create<IBookstore>(new Uri("fabric:/BankBookHub/Bookstore"), new ServicePartitionKey(0));
-            using (var transaction = this.StateManager.CreateTransaction())
+
+            var backUpBank = await proxyBank.GetAccountBalance();
+            var backUpBookstore = await proxyBookstore.GetBooks();
+
+
+            try
             {
-                try
+                using
+                    (var transaction = this.StateManager.CreateTransaction())
+                {
+                    if (!await proxyBookstore.HasSelectedBooks(cart)) { throw new Exception("Problem with the bookstore update."); }
+                    await transaction.CommitAsync();
+                }
+                using (var transaction = this.StateManager.CreateTransaction())
                 {
                     if (!await proxyBank.HasSufficientFunds(sum))
                     {
-                        return false;
-                    }
-                    if (!await proxyBookstore.HasSelectedBooks(cart))
-                    {
-                        return false;
-                    }
-
-                    if (!await proxyBank.RemoveFunds(sum))
-                    {
                         throw new Exception("Not enough funds.");
                     }
-
-                    if (!await proxyBookstore.RemoveBooksFromStorage(cart))
-                    {
-                        throw new Exception("Problem with the bookstore update.");
-                    }
-
                     await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    await proxyBank.AddFunds(sum);
-                    await proxyBookstore.RollbackBooksInventory(cart);
-
-                    return false;
                 }
             }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.ServiceMessage(this.Context, $"Transaction failed: {ex.Message}");
+                //await proxyBank.RollbackFunds(backUpBank); 
+                await proxyBookstore.RollbackBooksInventory(backUpBookstore);
+                return false;
+            }
+
+            using (var transaction = this.StateManager.CreateTransaction())
+            {
+                if (!await proxyBank.RemoveFunds(sum))
+                {
+                    throw new Exception("Not enough funds.");
+                }
+
+                if (!await proxyBookstore.RemoveBooksFromStorage(cart))
+                {
+                    throw new Exception("Problem with the bookstore update.");
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
         }
+
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.

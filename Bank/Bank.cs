@@ -38,12 +38,14 @@ namespace Bank
             }
         }
 
-        public async Task AddFunds(double amount)
+        public async Task<double> GetAccountBalance() { var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances"); using (var tx = this.StateManager.CreateTransaction()) { var result = await balances.TryGetValueAsync(tx, "accountBalance"); return result.HasValue ? result.Value : 0.0; } }
+
+        public async Task RollbackFunds(double amount)
         {
             var balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, double>>("balances");
             using (var tx = this.StateManager.CreateTransaction())
             {
-                await balances.AddOrUpdateAsync(tx, "accountBalance", 0.0, (key, value) => value + amount);
+                await balances.AddOrUpdateAsync(tx, "accountBalance", 0.0, (key, value) => amount);
                 await tx.CommitAsync();
             }
         }

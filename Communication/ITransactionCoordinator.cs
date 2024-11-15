@@ -5,6 +5,6 @@ namespace Common
 {
     public interface ITransactionCoordinator : IService
     {
-        public Task<bool> Operate(List<CartItem> cart);
+        Task<bool> Operate(List<CartItem> cart);
     }
 }

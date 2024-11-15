@@ -1,0 +1,32 @@
+﻿@{
+    var message = ViewBag.Message; 
+    var accountBalance = ViewBag.AccountBalance; 
+    var books = ViewBag.Books as Dictionary<int, Common.Models.Book>;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="title">Transaction Status</h1> 
+        <p class="subtitle">@message</p> 
+        <h3 class="title">Current Account Balance:</h3> 
+        <p class="subtitle">$@accountBalance</p> 
+        <h3 class="title">Books Inventory:</h3> 
+        <ul>
+            @if (books != null)
+            {
+                foreach (var book in books.Values)
+                {
+                    <li>@book.Title - Quantity: @book.Quantity</li>
+                }
+            }
+        </ul>
+    </div>
+</body>
+</html>

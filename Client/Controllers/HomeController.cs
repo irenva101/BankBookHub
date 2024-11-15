@@ -12,18 +12,15 @@ namespace Client.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private static List<CartItem> _cart = new List<CartItem>();
-        private readonly DB _db;
 
         public HomeController(ILogger<HomeController> logger, DB db)
         {
             _logger = logger;
-            _db = db;
         }
 
         public IActionResult Index()
         {
-            ViewBag.AccountBalance = _db.AccountBalance;
-            ViewBag.BookCount = _db.Books.Count;
+
             return View();
         }
 
@@ -33,6 +30,7 @@ namespace Client.Controllers
         }
         public IActionResult Books()
         {
+
             return View(DB.GetDB().Books);
         }
         public IActionResult Balance()
@@ -55,17 +53,23 @@ namespace Client.Controllers
             var proxy = ServiceProxy.Create<IValidator>(new Uri("fabric:/BankBookHub/Validator"));
             var result = await proxy.ValidateRequest(_cart);
 
-            if (result)
+            ViewBag.AccountBalance = result.AccountBalance;
+            ViewBag.Books = result.Books;
+
+            if (result.IsSuccess)
             {
-                TempData["Message"] = "Transaction successfully completed!";
-            }
-            else
-            {
-                TempData["Message"] = "Transaction failed due to insufficient funds or nonexistent books.";
+                ViewBag.Message = "Transaction successfully completed!";
+                ViewBag.AccountBalance = result.AccountBalance;
+                ViewBag.Books = result.Books;
+                return View("Output");
             }
 
-            return RedirectToAction("Index");
+            ViewBag.Message = "Transaction failed due to insufficient funds or nonexistent books.";
+            return View("Output");
+
         }
+        public IActionResult Success() { return View(); }
+        public IActionResult Failure() { return View(); }
         [HttpPost]
         public IActionResult AddToCart(int bookId, int quantity)
         {

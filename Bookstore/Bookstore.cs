@@ -33,14 +33,16 @@ namespace Bookstore
                 return false;
             }
         }
-        public async Task RollbackBooksInventory(List<CartItem> cart)
+
+        public async Task<Dictionary<int, Book>> GetBooks() { var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books"); var result = new Dictionary<int, Book>(); using (var tx = this.StateManager.CreateTransaction()) { var allBooks = await books.CreateEnumerableAsync(tx); using (var enumerator = allBooks.GetAsyncEnumerator()) { while (await enumerator.MoveNextAsync(CancellationToken.None)) { var current = enumerator.Current; result[current.Key] = current.Value; } } } return result; }
+        public async Task RollbackBooksInventory(Dictionary<int, Book> bookList)
         {
             var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books");
             using (var tx = this.StateManager.CreateTransaction())
             {
-                foreach (var item in cart)
+                foreach (var item in bookList)
                 {
-                    await books.AddOrUpdateAsync(tx, item.Book.Id, default(Book), (key, value) => { value.Quantity += item.Quantity; return value; });
+                    await books.AddOrUpdateAsync(tx, item.Key, default(Book), (key, value) => item.Value);
                 }
                 await tx.CommitAsync();
             }
@@ -103,6 +105,8 @@ namespace Bookstore
                 return true;
             }
         }
+
+        public async Task<bool> UpdateInventoryWithRollback(int bookId, int quantityToDeduct) { var books = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, Book>>("books"); using (var tx = this.StateManager.CreateTransaction()) { try { var book = await books.TryGetValueAsync(tx, bookId); if (!book.HasValue || book.Value.Quantity < quantityToDeduct) { return false; } var previousQuantity = book.Value.Quantity; book.Value.Quantity -= quantityToDeduct; await books.SetAsync(tx, bookId, book.Value); await tx.CommitAsync(); return true; } catch { using (var rollbackTx = this.StateManager.CreateTransaction()) { var book = await books.TryGetValueAsync(rollbackTx, bookId); if (book.HasValue) { book.Value.Quantity += quantityToDeduct; await books.SetAsync(rollbackTx, bookId, book.Value); await rollbackTx.CommitAsync(); } } return false; } } }
 
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.

@@ -6,6 +6,7 @@ namespace Common
     {
         Task<bool> RemoveFunds(double amount);
         Task<bool> HasSufficientFunds(double amount);
-        Task AddFunds(double amount);
+        Task RollbackFunds(double amount);
+        Task<double> GetAccountBalance();
     }
 }

@@ -1,9 +1,10 @@
-﻿@model HomeViewModel
+﻿@using Common.Models
+@model HomeViewModel
 
 @{
     var message = TempData["Message"] as string;
     var accountBalance = ViewBag.AccountBalance;
-    var bookCount = ViewBag.BookCount;
+    var books = ViewBag.Books as Dictionary<int, Book>;
 }
 
 
@@ -30,16 +31,6 @@
     <div class="container mt-5">
         <h1 class="title">Welcome to Irena's Bookstore!</h1>
         <p class="subtitle">Here, you can browse books, view your cart, and check your balance.</p>
-        <div class="mt-6"> 
-            <h3 class="title">Current Account Balance:</h3> <p class="subtitle"> @accountBalance</p>
-            <h3 class="title">Total Number of Books:</h3> <p class="subtitle"> @bookCount</p>
-        </div> 
-        @if (!string.IsNullOrEmpty(message))
-        {
-            <div class="alert alert-info">
-                @message
-            </div>
-        }
     </div>
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

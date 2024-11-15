@@ -16,7 +16,7 @@ namespace Common
             Books = new Dictionary<int, Book>
             {
                 [1] = new Book { Id = 1, Title = "The Name of the Wind", Author = "Patrick Rothfuss", Description = "The Name of the Wind follows the journey of Kvothe, a gifted young man who grows up to become a legendary figure.", Price = 19.99, Quantity = 3 },
-                [2] = new Book { Id = 2, Title = "Rebecca", Author = "Daphne du Maurier", Description = "Rebecca tells the story of a young, unnamed protagonist who marries the wealthy widower Maxim de Winter and moves to his grand estate, Manderley.", Price = 14.99, Quantity = 6 },
+                [2] = new Book { Id = 2, Title = "Rebecca", Author = "Daphne du Maurier", Description = "Rebecca tells the story of a young, unnamed protagonist who marries the wealthy widower Maxim de Winter and moves to his grand estate, Manderley.", Price = 24.99, Quantity = 6 },
                 [3] = new Book
                 {
                     Id = 3,

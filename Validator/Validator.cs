@@ -25,17 +25,35 @@ namespace Validator
             throw new NotImplementedException();
         }
 
-        public async Task<bool> ValidateRequest(List<CartItem> cart)
+        public async Task<Result> ValidateRequest(List<CartItem> cart)
         {
-            var proxy = ServiceProxy.Create<ITransactionCoordinator>(new Uri("fabric:/BankBookHub/TransactionCoordinator"),
-                new ServicePartitionKey(0));
-            var result = await proxy.Operate(cart);
-            if (result)
+            if (cart != null)
             {
-                return true;
-            }
+                var proxy = ServiceProxy.Create<ITransactionCoordinator>(new Uri("fabric:/BankBookHub/TransactionCoordinator"), new ServicePartitionKey(0));
+                var result = await proxy.Operate(cart);
 
-            return false;
+                var proxyBank = ServiceProxy.Create<IBank>(new Uri("fabric:/BankBookHub/Bank"), new ServicePartitionKey(0));
+                var accountBalance = await proxyBank.GetAccountBalance();
+
+                var proxyBookstore = ServiceProxy.Create<IBookstore>(new Uri("fabric:/BankBookHub/Bookstore"), new ServicePartitionKey(0));
+                var books = await proxyBookstore.GetBooks();
+
+                return new Result
+                {
+                    IsSuccess = result,
+                    AccountBalance = accountBalance,
+                    Books = books
+                };
+            }
+            else
+            {
+                return new Result
+                {
+                    IsSuccess = false,
+                    AccountBalance = 0,
+                    Books = null
+                };
+            }
         }
 
         /// <summary>

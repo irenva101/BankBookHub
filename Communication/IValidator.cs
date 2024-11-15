@@ -5,6 +5,6 @@ namespace Validator
 {
     public interface IValidator : IService
     {
-        Task<bool> ValidateRequest(List<CartItem> cart);
+        Task<Result> ValidateRequest(List<CartItem> cart);
     }
 }
